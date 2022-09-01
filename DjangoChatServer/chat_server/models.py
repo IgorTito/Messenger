@@ -1,0 +1,43 @@
+from django.db import models
+from easy_thumbnails.fields import ThumbnailerImageField
+
+
+class Room(models.Model):
+    name = models.CharField(max_length=256, unique=True)
+    class Meta():
+        verbose_name = "Комната"
+        verbose_name_plural = "Комнаты"
+
+    def __str__(self):
+        return f"{self.name}"
+
+
+class UserProfile(models.Model):
+    name = models.CharField(max_length=256, unique=True)
+    avatar = ThumbnailerImageField(resize_source={'size': (300, 300), 'crop': 'smart'}, upload_to='djangochatserver', default='djangochatserver/default.jpg')
+    avatar_small = ThumbnailerImageField(resize_source={'size': (30, 30), 'crop': 'smart'}, upload_to='djangochatserver', default='djangochatserver/default_small.jpg')
+    room = models.OneToOneField(Room, on_delete=models.SET_NULL, null=True)
+    online = models.BooleanField(default=False)
+
+    def user_list(self):
+        users = UserProfile.objects.filter().order_by('name')
+        return list(users)
+
+    class Meta():
+        verbose_name = "Пользователь"
+        verbose_name_plural = "Пользователи"
+
+    def __str__(self):
+        return f"{self.name}"
+
+class Message(models.Model):
+    author = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    room = models.ForeignKey(Room, on_delete=models.CASCADE)
+    text = models.CharField(max_length=255)
+
+    class Meta():
+        verbose_name = "Сообщение"
+        verbose_name_plural = "Сообщения"
+
+    def __str__(self):
+        return f"{self.id}"
